@@ -1,0 +1,16 @@
+.cursor = 
+.github_workflows = 
+api = views [probably models and urls.py also]
+assets_img = static files
+buildspec = 
+celery_tasks = 
+core = init file
+docs = documentation
+glyne_keys = files to store keys
+lender_rules_payloads = 
+scripts = probably scripts for automation/migration files
+sql = raw sql files
+templates = html templates
+tests = test files
+user_management = service files
+ws = wsgi settings
