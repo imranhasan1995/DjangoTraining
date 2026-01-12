@@ -1,7 +1,11 @@
-from django.urls import path
+from django.urls import include, path
 from . import views
+from rest_framework.routers import DefaultRouter
 
 #URL Configurations
+router = DefaultRouter()
+# customize the route path to 'store/address'
+router.register(r'address', views.AddressViewSet, basename='address')
 urlpatterns = [
     path('insertproduct/<str:title>/', views.insertProduct),
     path('insertcollection/<str:title>/', views.insertCollections),
@@ -17,4 +21,5 @@ urlpatterns = [
     path('customers/<int:customer_id>/', views.CustomerGetAPIView.as_view(), name='customer-detail'),
     path('orders/', views.OrderListCreateAPIView.as_view(), name='order-list'),
     path('orders/<int:pk>/', views.OrderRetrieveUpdateAPIView.as_view(), name='order-detail'),
+    path('', include(router.urls)),
 ]

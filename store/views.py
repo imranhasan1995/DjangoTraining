@@ -1,9 +1,9 @@
-from rest_framework import generics, mixins
+from rest_framework import generics, mixins, viewsets
 from django.utils import timezone
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.urls import reverse
-from store.models import Customer, Order, Product, Collections
+from store.models import Address, Customer, Order, Product, Collections
 from django.db.models import Avg
 from django.db import transaction
 from rest_framework.response import Response
@@ -11,7 +11,7 @@ from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 from rest_framework import status
 
-from store.serializers import CustomerSerializer, OrderSerializer
+from store.serializers import AddressSerializer, CustomerSerializer, OrderSerializer
 # Create your views here.
 
 
@@ -287,3 +287,7 @@ class OrderRetrieveUpdateAPIView(mixins.RetrieveModelMixin,
     # PUT /orders/<id>/
     def put(self, request, pk):
         return self.update(request, pk=pk)
+    
+class AddressViewSet(viewsets.ModelViewSet):
+    queryset = Address.objects.all()
+    serializer_class = AddressSerializer

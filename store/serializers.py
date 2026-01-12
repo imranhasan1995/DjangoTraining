@@ -1,6 +1,6 @@
 import datetime
 from rest_framework import serializers
-from .models import Customer, Order
+from .models import Address, Customer, Order
 
 class CustomerSerializer(serializers.ModelSerializer):
     def validate_phone(self, value):
@@ -31,3 +31,15 @@ class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = ['id', 'customer', 'payment_status', 'payment_status']
+
+class AddressSerializer(serializers.ModelSerializer):
+    # Nested read-only customer info
+    customer = CustomerSerializer(read_only=True)
+    # For POST/PUT, accept customer ID
+    customer_id = serializers.PrimaryKeyRelatedField(
+        queryset=Customer.objects.all(), write_only=True, source='customer'
+    )
+
+    class Meta:
+        model = Address
+        fields = ['id', 'street', 'city', 'zip', 'customer', 'customer_id']
