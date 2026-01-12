@@ -5,6 +5,12 @@ from django.urls import reverse
 from store.models import Customer, Order, Product, Collections
 from django.db.models import Avg
 from django.db import transaction
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.decorators import api_view
+from rest_framework import status
+
+from store.serializers import CustomerSerializer
 # Create your views here.
 
 
@@ -176,3 +182,62 @@ def getRecentCompletedOrders(request):
 
     # Return all results together
     return HttpResponse("Query successfull")
+
+
+@api_view(['GET'])
+def getCustomerDetails(request):
+    customers = Customer.objects.all()  # get all customers
+    serializer = CustomerSerializer(customers, many=True)
+    return Response({
+        "status": "success",
+        "count": customers.count(),
+        "data": serializer.data
+    })
+
+class CustomerCreateAPIView(APIView):
+    def post(self, request):
+        serializer = CustomerSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {
+                    "message": "Customer created successfully",
+                    "data": serializer.data
+                },
+                status=status.HTTP_201_CREATED
+            )
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+class CustomerUpdateAPIView(APIView):
+
+    def put(self, request, pk):
+        try:
+            customer = Customer.objects.get(pk=pk)
+        except Customer.DoesNotExist:
+            return Response(
+                {"error": "Customer not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = CustomerSerializer(
+            customer,
+            data=request.data,
+            partial=True  # allows partial updates
+        )
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {
+                    "message": "Customer updated successfully",
+                    "data": serializer.data
+                }
+            )
+
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST
+        )

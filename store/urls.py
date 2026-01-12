@@ -10,5 +10,8 @@ urlpatterns = [
     path('addcustomer/', views.addCustomer),
     path('addorder/', views.createOrder),
     path('addorderv2/', views.createOrderWithAnnotation),
-    path('getrecentorders/', views.getRecentCompletedOrders)
+    path('getrecentorders/', views.getRecentCompletedOrders),
+    path('getallcustomer/', views.getCustomerDetails),
+    path('customers/create/', views.CustomerCreateAPIView.as_view(), name='customer-create'),
+    path('customers/update/<int:pk>/', views.CustomerUpdateAPIView.as_view(), name='customer-update'),
 ]
