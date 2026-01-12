@@ -26,8 +26,8 @@ class CustomerSerializer(serializers.ModelSerializer):
         model = Customer
         fields = ['id', 'first_name', 'last_name', 'email', 'phone', 'created_at']
 
-class OrderSerializer():
-    customer = CustomerSerializer()
+class OrderSerializer(serializers.ModelSerializer):
+    customer = serializers.PrimaryKeyRelatedField(queryset=Customer.objects.all())
     class Meta:
         model = Order
         fields = ['id', 'customer', 'payment_status', 'payment_status']

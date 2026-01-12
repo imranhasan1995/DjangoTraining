@@ -1,3 +1,4 @@
+from rest_framework import generics, mixins
 from django.utils import timezone
 from django.http import HttpResponse
 from django.shortcuts import render
@@ -10,7 +11,7 @@ from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 from rest_framework import status
 
-from store.serializers import CustomerSerializer
+from store.serializers import CustomerSerializer, OrderSerializer
 # Create your views here.
 
 
@@ -194,6 +195,20 @@ def getCustomerDetails(request):
         "data": serializer.data
     })
 
+class CustomerGetAPIView(APIView):
+    def get(self, request, customer_id=None):
+        if customer_id:
+            try:
+                customer = Customer.objects.get(id=customer_id)
+                serializer = CustomerSerializer(customer)
+                return Response(serializer.data)
+            except Customer.DoesNotExist:
+                return Response({"error": "Customer not found"}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            customers = Customer.objects.all()
+            serializer = CustomerSerializer(customers, many=True)
+            return Response(serializer.data)
+
 class CustomerCreateAPIView(APIView):
     def post(self, request):
         serializer = CustomerSerializer(data=request.data)
@@ -241,3 +256,34 @@ class CustomerUpdateAPIView(APIView):
             serializer.errors,
             status=status.HTTP_400_BAD_REQUEST
         )
+
+
+# List all orders & Create new order
+class OrderListCreateAPIView(mixins.ListModelMixin,
+                             mixins.CreateModelMixin,
+                             generics.GenericAPIView):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+
+    # GET /orders/
+    def get(self, request):
+        return self.list(request)
+
+    # POST /orders/
+    def post(self, request):
+        return self.create(request)
+
+# Retrieve single order & Update existing order
+class OrderRetrieveUpdateAPIView(mixins.RetrieveModelMixin,
+                                 mixins.UpdateModelMixin,
+                                 generics.GenericAPIView):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+
+    # GET /orders/<id>/
+    def get(self, request, pk):
+        return self.retrieve(request, pk=pk)
+
+    # PUT /orders/<id>/
+    def put(self, request, pk):
+        return self.update(request, pk=pk)
