@@ -22,4 +22,5 @@ urlpatterns = [
     path('orders/', views.OrderListCreateAPIView.as_view(), name='order-list'),
     path('orders/<int:pk>/', views.OrderRetrieveUpdateAPIView.as_view(), name='order-detail'),
     path('', include(router.urls)),
+    path('async/order/', views.AsyncOrderView)
 ]

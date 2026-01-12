@@ -10,6 +10,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 from rest_framework import status
+from adrf.views import AsyncAPIView
 
 from store.serializers import AddressSerializer, CustomerSerializer, OrderSerializer
 # Create your views here.
@@ -291,3 +292,10 @@ class OrderRetrieveUpdateAPIView(mixins.RetrieveModelMixin,
 class AddressViewSet(viewsets.ModelViewSet):
     queryset = Address.objects.all()
     serializer_class = AddressSerializer
+
+
+class AsyncOrderView(AsyncAPIView):
+    async def get(self, request):
+        orders = await Order.objects.all()
+        serializer = OrderSerializer(orders, many=True)
+        return Response(serializer.data)
