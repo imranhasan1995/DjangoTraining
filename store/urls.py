@@ -9,5 +9,6 @@ urlpatterns = [
     path('productdetails/<str:title>/', views.productDetail, name='product-detail'),
     path('addcustomer/', views.addCustomer),
     path('addorder/', views.createOrder),
-    path('addorderv2/', views.createOrderWithAnnotation)
+    path('addorderv2/', views.createOrderWithAnnotation),
+    path('getrecentorders/', views.getRecentCompletedOrders)
 ]

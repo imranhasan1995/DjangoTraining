@@ -1,3 +1,4 @@
+from django.utils import timezone
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.urls import reverse
@@ -55,22 +56,22 @@ def productDetail(request, title):
     print(url)
     return HttpResponse("Product detail page")
 
+
 def createCustomer(name):
     customer = Customer.objects.create(
-        first_name = name,
-        last_name = 'ext',
-        email = name + 'test@gmail.com',
-        phone = '01943122344',
-        membership = 'S'
+        first_name=name,
+        last_name='ext',
+        email=name + 'test@gmail.com',
+        phone='01943122344',
+        membership='S'
     )
     return customer
+
 
 def addCustomer(request):
     createCustomer(request.GET.get('name'))
     return HttpResponse("Customer added successfully")
 
-from django.db import transaction
-from django.http import HttpResponse
 
 def createOrder(request):
     # OUTER atomic block starts a database transaction
@@ -139,3 +140,39 @@ def addOrder(customer):
 
     # At this point, if exception occurs, order will be rolled back
     # Customer will also be rolled back if part of same transaction
+
+
+def getRecentCompletedOrders(request):
+    # Filter customers with Silver or Gold membership (Query NOT executed yet)
+    customers_qs = Customer.objects.filter(
+        membership__in=[Customer.MEMBERSHIP_SILVER, Customer.MEMBERSHIP_GOLD])
+
+
+    # Chaining Methods
+    thirty_days_ago = timezone.now() - timezone.timedelta(days=30)
+    recent_orders = Order.objects.filter(customer__in=customers_qs) \
+                                 .filter(payment_status=Order.PAYMENT_STATUS_COMPLETE) \
+                                 .filter(placed_at__gte=thirty_days_ago) \
+                                 .order_by('-placed_at')
+    print(list(recent_orders))
+    # values() and values_list()
+    orders_dict = recent_orders.values(
+        'id', 'customer__first_name', 'customer__membership', 'placed_at')
+    print(list(orders_dict))
+
+    # As tuples
+    orders_tuple = recent_orders.values_list(
+        'id', 'customer__first_name', 'placed_at')
+    print(list(orders_tuple))
+    # Single field (order IDs)
+    order_ids = recent_orders.values_list('id', flat=True)
+    print(list(order_ids))
+    # exists() and count()
+    if recent_orders.exists():
+        print(
+            f"There are {recent_orders.count()} recent completed orders for Silver/Gold members.")
+    else:
+        print("No recent completed orders for Silver/Gold members.")
+
+    # Return all results together
+    return HttpResponse("Query successfull")
