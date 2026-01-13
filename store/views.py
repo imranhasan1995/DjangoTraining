@@ -10,9 +10,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 from rest_framework import status
-from adrf.views import AsyncAPIView
 
 from store.serializers import AddressSerializer, CustomerSerializer, OrderSerializer
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework_simplejwt.authentication import JWTAuthentication
 # Create your views here.
 
 
@@ -211,6 +212,7 @@ class CustomerGetAPIView(APIView):
             return Response(serializer.data)
 
 class CustomerCreateAPIView(APIView):
+    permission_classes = [IsAuthenticated]
     def post(self, request):
         serializer = CustomerSerializer(data=request.data)
         if serializer.is_valid():
@@ -293,9 +295,18 @@ class AddressViewSet(viewsets.ModelViewSet):
     queryset = Address.objects.all()
     serializer_class = AddressSerializer
 
+    # JWT Authentication
+    authentication_classes = [JWTAuthentication]
 
-class AsyncOrderView(AsyncAPIView):
-    async def get(self, request):
-        orders = await Order.objects.all()
+    # Public GET, authenticated for write actions
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            return [AllowAny()]
+        return [IsAuthenticated()]
+
+
+class AsyncOrderView(APIView):
+    def get(self, request):
+        orders = Order.objects.all()
         serializer = OrderSerializer(orders, many=True)
         return Response(serializer.data)

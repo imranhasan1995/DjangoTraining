@@ -1,7 +1,6 @@
 from django.urls import include, path
 from . import views
 from rest_framework.routers import DefaultRouter
-
 #URL Configurations
 router = DefaultRouter()
 # customize the route path to 'store/address'
@@ -22,5 +21,5 @@ urlpatterns = [
     path('orders/', views.OrderListCreateAPIView.as_view(), name='order-list'),
     path('orders/<int:pk>/', views.OrderRetrieveUpdateAPIView.as_view(), name='order-detail'),
     path('', include(router.urls)),
-    path('async/order/', views.AsyncOrderView)
+    path('async/order/', views.AsyncOrderView.as_view()),
 ]
