@@ -1,3 +1,5 @@
+import json
+from django.http import JsonResponse
 from django.shortcuts import render
 
 # Create your views here.
@@ -8,6 +10,27 @@ from django import forms
 from django.views.decorators.csrf import csrf_exempt
 
 from users.forms import UserForm
+import httpx
+from tenacity import retry, retry_if_exception, stop_after_attempt, wait_fixed, retry_if_exception_type, AsyncRetrying
+import asyncio
+
+EXTERNAL_API_URL = "https://jsonplaceholder.typicode.com/users"
+
+async def getexternaldata(request):
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            response = await client.get(EXTERNAL_API_URL)
+            response.raise_for_status()
+            data = json.loads(response.text)  # use response.text to avoid blocking
+
+        return JsonResponse(data, status=status.HTTP_200_OK, safe=False)
+
+    except httpx.RequestError as e:
+        return JsonResponse({"error": f"Network error: {str(e)}"}, status=status.HTTP_502_BAD_GATEWAY)
+    except httpx.HTTPStatusError as e:
+        return JsonResponse({"error": f"HTTP error {e.response.status_code}"}, status=e.response.status_code)
+    except Exception as e:
+        return JsonResponse({"error": f"Unexpected error: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class UserCreateAPIView(APIView):
     @csrf_exempt
