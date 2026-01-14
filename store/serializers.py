@@ -1,6 +1,7 @@
 import datetime
 from rest_framework import serializers
 from .models import Address, Customer, Order
+from phonenumber_field.serializerfields import PhoneNumberField
 
 class CustomerSerializer(serializers.ModelSerializer):
     def validate_phone(self, value):
@@ -22,9 +23,10 @@ class CustomerSerializer(serializers.ModelSerializer):
 
     last_name = serializers.CharField(write_only=True, required=False)
     created_at = serializers.DateTimeField(read_only=True)
+    mobile = PhoneNumberField(region="BD")
     class Meta:
         model = Customer
-        fields = ['id', 'first_name', 'last_name', 'email', 'phone', 'created_at']
+        fields = ['id', 'first_name', 'last_name', 'email', 'phone', 'created_at', 'mobile']
 
 class OrderSerializer(serializers.ModelSerializer):
     customer = serializers.PrimaryKeyRelatedField(queryset=Customer.objects.all())

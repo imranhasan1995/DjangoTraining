@@ -1,5 +1,5 @@
 from django.db import models
-
+from phonenumber_field.modelfields import PhoneNumberField
 # Create your models here.
 
 class Promotion(models.Model):
@@ -37,6 +37,7 @@ class Customer(models.Model):
     birth_date = models.DateField(null=True)
     membership = models.CharField(max_length=1, choices=MEMBERSHIP_CHOICES, default=MEMBERSHIP_BRONZE)
     created_at = models.DateTimeField(auto_now_add=True)
+    mobile = PhoneNumberField(unique=True, region="BD", null=True)
 
 class Order(models.Model):
     PAYMENT_STATUS_PENDING = 'P'

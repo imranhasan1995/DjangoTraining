@@ -57,7 +57,14 @@ INSTALLED_APPS = [
     'users',
     'corsheaders',
     'django_celery_results',
-    'django_celery_beat'
+    'django_celery_beat',
+    'phonenumber_field',
+    'drf_spectacular'
+]
+
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    BASE_DIR / "static",  # optional if you have extra static folder
 ]
 
 MIDDLEWARE = [
@@ -158,6 +165,14 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'My API',
+    'DESCRIPTION': 'API for my Django app',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,  # do not expose schema in production
 }
 
 SIMPLE_JWT = {
