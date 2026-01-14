@@ -25,7 +25,7 @@ EXTERNAL_API_URL = "https://jsonplaceholder.typicode.com/users"
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 r = redis.Redis.from_url(REDIS_URL, decode_responses=True)
 
-
+logger = logging.getLogger('myapp')
 class FetchUsersAPIView(APIView):
     def get(self, request):
         task = fetch_and_store_users.delay()  # push task to RabbitMQ
@@ -53,6 +53,7 @@ async def getexternaldata(request):
             url=EXTERNAL_API_URL,
             response_data=data
         )
+        logger.debug('successfully fetched user list from remote API')
         return JsonResponse(data, status=status.HTTP_200_OK, safe=False)
 
     except httpx.RequestError as e:
@@ -101,11 +102,6 @@ class SceduleTask(APIView):
             task="users.celery_tasks.new_user.check_new_users",
         )
         return Response("Task scheduled!", status=200)
-    
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
-from django_celery_beat.models import PeriodicTask
 
 class RemoveScheduledTask(APIView):
     permission_classes = [AllowAny]
