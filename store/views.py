@@ -210,6 +210,12 @@ class CustomerGetAPIView(APIView):
             customers = Customer.objects.all()
             serializer = CustomerSerializer(customers, many=True)
             return Response(serializer.data)
+        
+class CustomerListGetAPIView(APIView):
+    def get(self, request):
+        customers = Customer.objects.all()
+        serializer = CustomerSerializer(customers, many=True)
+        return Response(serializer.data)
 
 class CustomerCreateAPIView(APIView):
     permission_classes = [IsAuthenticated]

@@ -29,6 +29,13 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 
+CELERY_BROKER_URL = "amqp://guest:guest@localhost:5672//"
+# Result backend (Redis)
+CELERY_RESULT_BACKEND = "redis://localhost:6379/0"
+# Optional: task serialization
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
 # Application definition
 
 INSTALLED_APPS = [
@@ -44,7 +51,8 @@ INSTALLED_APPS = [
     "tags",
     'rest_framework',
     'users',
-    'corsheaders'
+    'corsheaders',
+    'django_celery_results'
 ]
 
 MIDDLEWARE = [
