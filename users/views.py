@@ -18,6 +18,8 @@ from .celery_tasks.user_task import fetch_and_store_users
 import redis
 import os
 from rest_framework.permissions import AllowAny
+from django_celery_beat.models import PeriodicTask, IntervalSchedule
+from .celery_tasks import new_user
 
 EXTERNAL_API_URL = "https://jsonplaceholder.typicode.com/users"
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
@@ -30,6 +32,7 @@ class FetchUsersAPIView(APIView):
         return Response({"task_id": task.id}, status=status.HTTP_202_ACCEPTED)
     
 class GetProcessedUsersAPIView(APIView):
+    permission_classes = [AllowAny]
     def get(self, request):
         users_json = r.get("processed_users")
         if not users_json:
@@ -83,3 +86,36 @@ class UserCreateAPIView(APIView):
             errors = {field: [str(e) for e in errs] for field, errs in form.errors.items()}
             return Response(errors, status=status.HTTP_400_BAD_REQUEST)
 '''
+
+class SceduleTask(APIView):
+    permission_classes = [AllowAny]
+    def get(self, request):
+        interval, _ = IntervalSchedule.objects.get_or_create(
+            every=30,
+            period=IntervalSchedule.SECONDS,
+        )
+
+        PeriodicTask.objects.create(
+            interval=interval,
+            name="my-schedule",
+            task="users.celery_tasks.new_user.check_new_users",
+        )
+        return Response("Task scheduled!", status=200)
+    
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
+from django_celery_beat.models import PeriodicTask
+
+class RemoveScheduledTask(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        task_name = "my-schedule"  # Name of the task you want to remove
+
+        try:
+            task = PeriodicTask.objects.get(name=task_name)
+            task.delete()  # Deletes the scheduled task
+            return Response(f"Task '{task_name}' removed!", status=200)
+        except PeriodicTask.DoesNotExist:
+            return Response(f"Task '{task_name}' does not exist.", status=404)

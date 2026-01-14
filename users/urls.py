@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import FetchUsersAPIView, GetProcessedUsersAPIView, UserCreateAPIView, getexternaldata
+from .views import FetchUsersAPIView, GetProcessedUsersAPIView, RemoveScheduledTask, SceduleTask, UserCreateAPIView, getexternaldata
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -12,4 +12,6 @@ urlpatterns = [
     path('api/getusers/', FetchUsersAPIView.as_view(), name='get_users'),
     path('api/getprocesseddata/', GetProcessedUsersAPIView.as_view(), name='get_processed_data'),
     path('api/externaldata/', getexternaldata),
+    path('api/scheduletask/', SceduleTask.as_view()),
+    path('api/removescheduletask/', RemoveScheduledTask.as_view()),
 ]
