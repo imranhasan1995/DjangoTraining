@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import FetchUsersAPIView, GetProcessedUsersAPIView, RemoveScheduledTask, SceduleTask, UserCreateAPIView, dashboard, getexternaldata, login_view, start_login_celery, start_login_playwright
+from .views import FetchUsersAPIView, GetProcessedUsersAPIView, RemoveScheduledTask, SceduleTask, UserCreateAPIView, dashboard, getexternaldata, login_view, signin_google, start_login_celery, start_login_playwright
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -18,4 +18,5 @@ urlpatterns = [
     path("dashboard/", dashboard),
     path("api/startlogin/", start_login_playwright),
     path("api/startlogincelery/", start_login_celery),
+    path("api/signintogoogle/", signin_google),
 ]

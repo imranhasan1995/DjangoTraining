@@ -26,6 +26,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 import asyncio
 from .playwright_tasks.playwright_task import run_login_playwright
+from .playwright_tasks.signin_task import run_google_create_account_test
 import threading
 from .celery_tasks.login_task import run_login_playwright_task
 
@@ -176,5 +177,31 @@ def start_login_celery(request):
 
     # Push task to Celery queue (non-blocking)
     run_login_playwright_task.delay(username, password)
+
+    return Response({"message": "Playwright started"}, status=202)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def signin_google(request):
+    """
+    Trigger Playwright login asynchronously, return immediately.
+    """
+    username = request.data.get("username")
+    password = request.data.get("password")
+    name = request.data.get("name")
+    lastname = request.data.get("lastname")
+    dob = request.data.get("dob")
+    gender = request.data.get("gender")
+
+    if not username or not password:
+        return Response({"error": "Username and password required"}, status=400)
+
+    # Run Playwright in background thread
+    def background_task():
+        import asyncio
+        asyncio.run(run_google_create_account_test(username, password, name, lastname, dob, gender))
+
+    threading.Thread(target=background_task).start()
 
     return Response({"message": "Playwright started"}, status=202)
