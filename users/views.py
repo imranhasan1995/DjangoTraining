@@ -20,6 +20,14 @@ import os
 from rest_framework.permissions import AllowAny
 from django_celery_beat.models import PeriodicTask, IntervalSchedule
 from .celery_tasks import new_user
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+import asyncio
+from .playwright_tasks.playwright_task import run_login_playwright
+import threading
+from .celery_tasks.login_task import run_login_playwright_task
 
 EXTERNAL_API_URL = "https://jsonplaceholder.typicode.com/users"
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
@@ -116,3 +124,57 @@ class RemoveScheduledTask(APIView):
             return Response(f"Task '{task_name}' removed!", status=200)
         except PeriodicTask.DoesNotExist:
             return Response(f"Task '{task_name}' does not exist.", status=404)
+
+
+def login_view(request):
+    if request.method == "POST":
+        user = authenticate(
+            request,
+            username=request.POST["username"],
+            password=request.POST["password"],
+        )
+        if user:
+            login(request, user)
+            print('login successfull')
+            return redirect("/dashboard/")
+        return render(request, "login.html", {"error": "Invalid credentials"})
+
+    return render(request, "login.html")
+
+def dashboard(request):
+    return render(request, "dashboard.html")
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def start_login_playwright(request):
+    """
+    Trigger Playwright login asynchronously, return immediately.
+    """
+    username = request.data.get("username")
+    password = request.data.get("password")
+
+    if not username or not password:
+        return Response({"error": "Username and password required"}, status=400)
+
+    # Run Playwright in background thread
+    def background_task():
+        import asyncio
+        asyncio.run(run_login_playwright(username, password))
+
+    threading.Thread(target=background_task).start()
+
+    return Response({"message": "Playwright started"}, status=202)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def start_login_celery(request):
+    username = request.data.get("username")
+    password = request.data.get("password")
+
+    if not username or not password:
+        return Response({"error": "Username and password required"}, status=400)
+
+    # Push task to Celery queue (non-blocking)
+    run_login_playwright_task.delay(username, password)
+
+    return Response({"message": "Playwright started"}, status=202)
