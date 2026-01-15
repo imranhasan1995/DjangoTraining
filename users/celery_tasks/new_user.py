@@ -33,3 +33,34 @@ def check_new_users():
     print('New User Count:', len(new_users_list))
     # Save the list to Redis (overwrites previous)
     redis_client.set(NEW_USERS_KEY, json.dumps(new_users_list))
+
+@shared_task(
+    bind=True,
+    autoretry_for=(Exception,),
+    retry_kwargs={'max_retries': 5, 'countdown': 30}
+)
+def check_new_usersV2(self):
+    """
+    SUCCESS → result stored in DB
+    FAILURE → exception + traceback stored in DB
+    """
+    interval_seconds = 30
+    since_time = timezone.now() - timedelta(seconds=interval_seconds)
+
+    # If this fails → exception stored automatically
+    users = list(
+        User.objects
+        .filter(date_joined__gte=since_time)
+        .values(
+            'id', 'username', 'email',
+            'first_name', 'last_name', 'date_joined'
+        )
+    )
+    if len(users) == 0:
+        raise Exception('No users added')
+    # Returned data saved in DB
+    return {
+        "status": "success",
+        "count": len(users),
+        "users": users,
+    }
