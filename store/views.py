@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.urls import reverse
+from store.mixins.loggingmixin import LoggingMixin
 from store.models import Address, Customer, Order, Product, Collections
 from django.db.models import Avg
 from django.db import transaction
@@ -211,11 +212,12 @@ class CustomerGetAPIView(APIView):
             serializer = CustomerSerializer(customers, many=True)
             return Response(serializer.data)
         
-class CustomerListGetAPIView(APIView):
+class CustomerListGetAPIView(mixins.ListModelMixin, generics.GenericAPIView):
+    queryset = Customer.objects.all()
+    serializer_class = CustomerSerializer
+
     def get(self, request):
-        customers = Customer.objects.all()
-        serializer = CustomerSerializer(customers, many=True)
-        return Response(serializer.data)
+        return self.list(request)
 
 class CustomerCreateAPIView(APIView):
     permission_classes = [IsAuthenticated]
@@ -268,7 +270,8 @@ class CustomerUpdateAPIView(APIView):
 
 
 # List all orders & Create new order
-class OrderListCreateAPIView(mixins.ListModelMixin,
+class OrderListCreateAPIView(LoggingMixin, 
+                             mixins.ListModelMixin,
                              mixins.CreateModelMixin,
                              generics.GenericAPIView):
     queryset = Order.objects.all()
@@ -283,7 +286,8 @@ class OrderListCreateAPIView(mixins.ListModelMixin,
         return self.create(request)
 
 # Retrieve single order & Update existing order
-class OrderRetrieveUpdateAPIView(mixins.RetrieveModelMixin,
+class OrderRetrieveUpdateAPIView(LoggingMixin, 
+                                 mixins.RetrieveModelMixin,
                                  mixins.UpdateModelMixin,
                                  generics.GenericAPIView):
     queryset = Order.objects.all()
